@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import id.ist.training.model.Task.OnBoardingType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,9 +28,5 @@ public class TaskDto implements Serializable {
 
 	@NotBlank(message = "Task Information is mandatory")
 	private String information;
-
-	public enum OnBoardingType {
-		COMPANY_POLICY_MEETING, TEAM_AND_COWORKER_INTROCUTION, GET_WORK_ACCOUNT, JOINNING_GROUP
-	}
 
 }

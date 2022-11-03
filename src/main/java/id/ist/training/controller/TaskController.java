@@ -7,7 +7,6 @@ import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,6 +32,7 @@ import id.ist.training.dto.TaskDto;
 import id.ist.training.exception.TaskNotFoundException;
 import id.ist.training.model.Task;
 import id.ist.training.service.TaskService;
+import id.ist.training.util.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController()
@@ -80,20 +80,22 @@ public class TaskController {
 	}
 
 	@PostMapping()
-	public ResponseEntity<Object> createTask(@Valid @RequestBody Task newTask) {
+	public ResponseEntity<Object> createTask(@Valid @RequestBody TaskDto taskDto) {
 		log.info("Start create Task.");
-		newTask.setId(UUID.randomUUID().toString());
+		Task newTask = new Task();
+		ObjectUtils.copyProperties(newTask, taskDto);
 		taskService.create(newTask);
 		return new ResponseEntity<>(HttpStatus.CREATED);
 
 	}
 
 	@PutMapping(value = TaskController.UPDATE_TASK)
-	public ResponseEntity<Object> updatePutTask(@Valid @RequestBody Task updatedTask, @PathVariable("id") String taskId) {
+	public ResponseEntity<Object> updatePutTask(@PathVariable("id") String taskId, @Valid @RequestBody TaskDto updatedTaskDto) {
 		log.info("Start updating with put method to Employee, index : " + taskId);
 		try {
-			Task oriTask = taskService.read(taskId);
-			taskService.update(oriTask, updatedTask, taskId);
+			Task tempTask = new Task();
+			ObjectUtils.copyProperties(tempTask, updatedTaskDto);
+			taskService.update(tempTask, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (TaskNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -109,7 +111,8 @@ public class TaskController {
 			Task tempTask = taskService.read(taskId);
 			JsonNode patched = patch.apply(objectMapper.convertValue(tempTask, JsonNode.class));
 			Task taskPatched = objectMapper.treeToValue(patched, Task.class);
-			taskService.update(tempTask, taskPatched, taskId);
+			taskPatched.setId(taskId);
+			taskService.update(taskPatched, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (TaskNotFoundException e) {
         	 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

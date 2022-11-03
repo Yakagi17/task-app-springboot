@@ -49,7 +49,8 @@ public class TaskService {
 		return taskRepository.readAll();
 	}
 	
-	public void update(Task oriTask, Task updatedTask, String index) throws IllegalAccessException, InvocationTargetException {
+	public void update(Task updatedTask, String index) throws IllegalAccessException, InvocationTargetException {
+		Task oriTask = taskRepository.read(index).orElseThrow(TaskNotFoundException::new);
 		taskRepository.update(oriTask, updatedTask, index);
 	}
 

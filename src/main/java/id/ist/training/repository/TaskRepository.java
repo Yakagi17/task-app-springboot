@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import id.ist.training.model.Task;
 import id.ist.training.util.IoUtil;
+import id.ist.training.util.ObjectUtils;
 import lombok.Data;
 
 @Repository
@@ -44,8 +45,7 @@ public class TaskRepository {
 	}
 
 	public void update(Task oriTask, Task updatedTask, String id) throws IllegalAccessException, InvocationTargetException {
-		BeanUtils.copyProperties(updatedTask, oriTask);
-		oriTask.setId(id);
+		ObjectUtils.copyProperties(oriTask, updatedTask);
 		IoUtil.writeData(tasks);
 	}
 
