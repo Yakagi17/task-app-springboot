@@ -2,6 +2,7 @@ package id.ist.training.controller;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
@@ -79,15 +80,10 @@ public class TaskController {
 	}
 
 	@PostMapping()
-	public ResponseEntity<Object> createTask(@Valid @RequestBody TaskDto taskDto) {
+	public ResponseEntity<Object> createTask(@Valid @RequestBody Task newTask) {
 		log.info("Start create Task.");
-		Task task = new Task();
-		try {
-			BeanUtils.copyProperties(task, taskDto);
-			taskService.create(task);
-		} catch (IllegalAccessException | InvocationTargetException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+		newTask.setId(UUID.randomUUID().toString());
+		taskService.create(newTask);
 		return new ResponseEntity<>(HttpStatus.CREATED);
 
 	}

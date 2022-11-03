@@ -20,7 +20,7 @@ public class Task implements Serializable {
 
 	private String id = UUID.randomUUID().toString();
 
-	@NotNull(message = "On Boarding Type is mandatory")
+//	@NotNull(message = "On Boarding Type is mandatory")
 	private OnBoardingType onBoardingType;
 
 	@NotNull(message = "Task time start is mandatory")
