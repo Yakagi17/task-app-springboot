@@ -2,7 +2,6 @@ package id.ist.training.controller;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
@@ -12,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,6 +30,7 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 
 import id.ist.training.dto.TaskDto;
+import id.ist.training.exception.InvalidDataException;
 import id.ist.training.exception.TaskNotFoundException;
 import id.ist.training.model.Task;
 import id.ist.training.service.TaskService;
@@ -47,7 +49,7 @@ public class TaskController {
 
 	@Autowired
 	private TaskService taskService;
-	
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -90,18 +92,17 @@ public class TaskController {
 	}
 
 	@PutMapping(value = TaskController.UPDATE_TASK)
-	public ResponseEntity<Object> updatePutTask(@PathVariable("id") String taskId, @Valid @RequestBody TaskDto updatedTaskDto) {
+	public ResponseEntity<Object> updatePutTask(@PathVariable("id") String taskId,
+			@Valid @RequestBody TaskDto updatedTaskDto) {
 		log.info("Start updating with put method to Employee, index : " + taskId);
 		try {
 			Task tempTask = new Task();
 			ObjectUtils.copyProperties(tempTask, updatedTaskDto);
 			taskService.update(tempTask, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (TaskNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalAccessException | InvocationTargetException e) {
-        	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			throw new InvalidDataException();
+		}
 	}
 
 	@PatchMapping(path = TaskController.UPDATE_TASK, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -117,22 +118,16 @@ public class TaskController {
 			ObjectUtils.copyProperties(taskPatched, taskDtoPatched);
 			taskService.update(taskPatched, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		} catch (TaskNotFoundException e) {
-        	 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		} catch (JsonPatchException | JsonProcessingException | IllegalAccessException | InvocationTargetException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+			throw new InvalidDataException();
+		}
 	}
 
 	@DeleteMapping(path = TaskController.DELETE_TASK)
 	public ResponseEntity<Object> deleteTask(@PathVariable("id") String taskId) {
 		log.info("Start delete Employee, index : " + taskId);
-		try {
-			taskService.delete(taskId);
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		} catch(TaskNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+		taskService.delete(taskId);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@DeleteMapping()
@@ -140,5 +135,29 @@ public class TaskController {
 		log.info("Start delete All Employee");
 		taskService.deleteAll();
 		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+	
+	@GetMapping("/invalid-data")
+	public String throwIndlavidData() {
+		log.info("Error validating data");
+		throw new InvalidDataException();
+	}
+	
+	@GetMapping("/data-not-found")
+	public String dataNotFound() {
+		log.info("Error getting data");
+		throw new TaskNotFoundException();
+	}
+
+	
+	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(InvalidDataException.class)
+	public void invlaidData() {
+
+	}
+
+	@ResponseStatus(value = HttpStatus.NOT_FOUND)
+	@ExceptionHandler(TaskNotFoundException.class)
+	public void taskDataNotFound() {
 	}
 }
