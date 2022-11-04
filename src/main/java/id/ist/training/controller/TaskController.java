@@ -2,7 +2,6 @@ package id.ist.training.controller;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -69,7 +69,7 @@ public class TaskController {
 			Task task = taskService.read(taskId);
 			return new ResponseEntity<>(task, HttpStatus.OK);
 		} catch (TaskNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There isn't any task that match you're searching", e);
 		}
 	}
 
@@ -98,9 +98,9 @@ public class TaskController {
 			taskService.update(tempTask, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (TaskNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        	throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There isn't any task that match you're searching", e);
         } catch (IllegalAccessException | InvocationTargetException e) {
-        	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        	throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error, There's data violation on validation", e);
         }
 	}
 
@@ -118,9 +118,9 @@ public class TaskController {
 			taskService.update(taskPatched, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (TaskNotFoundException e) {
-        	 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There isn't any task that match you're searching", e);
 		} catch (JsonPatchException | JsonProcessingException | IllegalAccessException | InvocationTargetException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error, There's data violation on validation", e);
         }
 	}
 
@@ -131,7 +131,7 @@ public class TaskController {
 			taskService.delete(taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch(TaskNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "There isn't any task that match you're searching", e);
 		}
 	}
 
