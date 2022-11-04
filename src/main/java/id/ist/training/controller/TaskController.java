@@ -2,7 +2,6 @@ package id.ist.training.controller;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
