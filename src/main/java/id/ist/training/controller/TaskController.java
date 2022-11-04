@@ -150,13 +150,13 @@ public class TaskController {
 	}
 
 	
-	@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+	@ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Data validation is violated")
 	@ExceptionHandler(InvalidDataException.class)
 	public void invlaidData() {
 
 	}
 
-	@ResponseStatus(value = HttpStatus.NOT_FOUND)
+	@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "There's isnt any data match you're seaching" )
 	@ExceptionHandler(TaskNotFoundException.class)
 	public void taskDataNotFound() {
 	}
