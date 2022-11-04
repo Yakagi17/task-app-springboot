@@ -28,7 +28,7 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 
 import id.ist.training.dto.TaskDto;
-import id.ist.training.exception.TaskNotFoundException;
+import id.ist.training.exception.InvalidDataException;
 import id.ist.training.model.Task;
 import id.ist.training.service.TaskService;
 import id.ist.training.util.ObjectUtils;
@@ -46,7 +46,7 @@ public class TaskController {
 
 	@Autowired
 	private TaskService taskService;
-	
+
 	@Autowired
 	private ObjectMapper objectMapper;
 
@@ -64,12 +64,8 @@ public class TaskController {
 	@GetMapping(path = GET_TASK)
 	public ResponseEntity<Task> getTask(@PathVariable("id") String taskId) {
 		log.info("Start get Task. ID=" + taskId);
-		try {
-			Task task = taskService.read(taskId);
-			return new ResponseEntity<>(task, HttpStatus.OK);
-		} catch (TaskNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-		}
+		Task task = taskService.read(taskId);
+		return new ResponseEntity<>(task, HttpStatus.OK);
 	}
 
 	@GetMapping()
@@ -89,18 +85,17 @@ public class TaskController {
 	}
 
 	@PutMapping(value = TaskController.UPDATE_TASK)
-	public ResponseEntity<Object> updatePutTask(@PathVariable("id") String taskId, @Valid @RequestBody TaskDto updatedTaskDto) {
+	public ResponseEntity<Object> updatePutTask(@PathVariable("id") String taskId,
+			@Valid @RequestBody TaskDto updatedTaskDto) {
 		log.info("Start updating with put method to Employee, index : " + taskId);
 		try {
 			Task tempTask = new Task();
 			ObjectUtils.copyProperties(tempTask, updatedTaskDto);
 			taskService.update(tempTask, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (TaskNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalAccessException | InvocationTargetException e) {
-        	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			throw new InvalidDataException();
+		}
 	}
 
 	@PatchMapping(path = TaskController.UPDATE_TASK, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -116,22 +111,16 @@ public class TaskController {
 			ObjectUtils.copyProperties(taskPatched, taskDtoPatched);
 			taskService.update(taskPatched, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		} catch (TaskNotFoundException e) {
-        	 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 		} catch (JsonPatchException | JsonProcessingException | IllegalAccessException | InvocationTargetException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+			throw new InvalidDataException();
+		}
 	}
 
 	@DeleteMapping(path = TaskController.DELETE_TASK)
 	public ResponseEntity<Object> deleteTask(@PathVariable("id") String taskId) {
 		log.info("Start delete Employee, index : " + taskId);
-		try {
-			taskService.delete(taskId);
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		} catch(TaskNotFoundException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+		taskService.delete(taskId);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 	}
 
 	@DeleteMapping()
