@@ -109,9 +109,12 @@ public class TaskController {
 		log.info("Start updating with patch method to Employee, index : " + taskId);
 		try {
 			Task tempTask = taskService.read(taskId);
-			JsonNode patched = patch.apply(objectMapper.convertValue(tempTask, JsonNode.class));
-			Task taskPatched = objectMapper.treeToValue(patched, Task.class);
-			taskPatched.setId(taskId);
+			TaskDto tempTaskDto = new TaskDto();
+			ObjectUtils.copyProperties(tempTaskDto, tempTask);
+			JsonNode patched = patch.apply(objectMapper.convertValue(tempTaskDto, JsonNode.class));
+			TaskDto taskDtoPatched = objectMapper.treeToValue(patched, TaskDto.class);
+			Task taskPatched = new Task();
+			ObjectUtils.copyProperties(taskPatched, taskDtoPatched);
 			taskService.update(taskPatched, taskId);
 			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 		} catch (TaskNotFoundException e) {
